@@ -9,8 +9,8 @@ import java.util.List;
 
 public class ExpenseDAO {
 
+    // CREATE
     public void addExpense(Expense e) throws SQLException {
-
         String sql =
             "INSERT INTO expense (amount, description, expense_date, category_id, note) " +
             "VALUES (?, ?, ?, ?, ?)";
@@ -33,8 +33,8 @@ public class ExpenseDAO {
         }
     }
 
+    // READ
     public List<Expense> getAllExpenses() throws SQLException {
-
         List<Expense> list = new ArrayList<>();
 
         String sql =
@@ -57,5 +57,42 @@ public class ExpenseDAO {
             }
         }
         return list;
+    }
+
+    // UPDATE
+    public void updateExpense(Expense e) throws SQLException {
+        String sql =
+            "UPDATE expense SET amount=?, description=?, expense_date=?, category_id=?, note=? " +
+            "WHERE expense_id=?";
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setBigDecimal(1, e.getAmount());
+            ps.setString(2, e.getDescription());
+            ps.setDate(3, Date.valueOf(e.getExpenseDate()));
+
+            if (e.getCategoryId() == null) {
+                ps.setNull(4, Types.INTEGER);
+            } else {
+                ps.setInt(4, e.getCategoryId());
+            }
+
+            ps.setString(5, e.getNote());
+            ps.setInt(6, e.getExpenseId());
+            ps.executeUpdate();
+        }
+    }
+
+    // DELETE
+    public void deleteExpense(int id) throws SQLException {
+        String sql = "DELETE FROM expense WHERE expense_id = ?";
+
+        try (Connection con = DatabaseConnection.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        }
     }
 }

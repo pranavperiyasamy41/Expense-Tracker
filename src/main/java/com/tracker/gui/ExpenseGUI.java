@@ -15,19 +15,16 @@ import java.util.List;
 public class ExpenseGUI extends JFrame {
 
     private JComboBox<Category> categoryBox;
-    private JTextField descriptionField;
-    private JTextField amountField;
-    private JTextField noteField;
-
+    private JTextField amountField, descField, noteField, dateField;
     private JTable table;
-    private DefaultTableModel tableModel;
+    private DefaultTableModel model;
 
-    private CategoryDAO categoryDAO = new CategoryDAO();
-    private ExpenseDAO expenseDAO = new ExpenseDAO();
+    private final ExpenseDAO expenseDAO = new ExpenseDAO();
+    private final CategoryDAO categoryDAO = new CategoryDAO();
 
     public ExpenseGUI() {
         setTitle("Expense Tracker");
-        setSize(800, 450);
+        setSize(900, 450);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
@@ -37,44 +34,56 @@ public class ExpenseGUI extends JFrame {
     }
 
     private void initUI() {
-        JPanel formPanel = new JPanel(new GridLayout(4, 2, 5, 5));
+        JPanel form = new JPanel(new GridLayout(2, 5, 5, 5));
 
-        formPanel.add(new JLabel("Category:"));
         categoryBox = new JComboBox<>();
-        formPanel.add(categoryBox);
-
-        formPanel.add(new JLabel("Description:"));
-        descriptionField = new JTextField();
-        formPanel.add(descriptionField);
-
-        formPanel.add(new JLabel("Amount:"));
         amountField = new JTextField();
-        formPanel.add(amountField);
-
-        formPanel.add(new JLabel("Note:"));
+        descField = new JTextField();
         noteField = new JTextField();
-        formPanel.add(noteField);
+        dateField = new JTextField(LocalDate.now().toString());
 
-        JButton addButton = new JButton("ADD EXPENSE");
+        form.add(new JLabel("Category"));
+        form.add(new JLabel("Amount"));
+        form.add(new JLabel("Description"));
+        form.add(new JLabel("Note"));
+        form.add(new JLabel("Date (YYYY-MM-DD)"));
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(formPanel, BorderLayout.CENTER);
-        topPanel.add(addButton, BorderLayout.SOUTH);
+        form.add(categoryBox);
+        form.add(amountField);
+        form.add(descField);
+        form.add(noteField);
+        form.add(dateField);
 
-        add(topPanel, BorderLayout.NORTH);
+        JButton addBtn = new JButton("ADD");
+        JButton updateBtn = new JButton("UPDATE");
+        JButton deleteBtn = new JButton("DELETE");
 
-        tableModel = new DefaultTableModel(
-                new Object[]{"Expense ID", "Amount", "Description", "Date", "Category ID", "Note"}, 0) {
+        JPanel btnPanel = new JPanel();
+        btnPanel.add(addBtn);
+        btnPanel.add(updateBtn);
+        btnPanel.add(deleteBtn);
+
+        model = new DefaultTableModel(
+                new Object[] { "ID", "Amount", "Description", "Date", "Category ID", "Note" }, 0) {
             public boolean isCellEditable(int r, int c) {
                 return false;
             }
         };
 
-        table = new JTable(tableModel);
-        add(new JScrollPane(table), BorderLayout.CENTER);
+        table = new JTable(model);
 
-        addButton.addActionListener(e -> addExpense());
+        add(form, BorderLayout.NORTH);
+        add(new JScrollPane(table), BorderLayout.CENTER);
+        add(btnPanel, BorderLayout.SOUTH);
+
+        addBtn.addActionListener(e -> addExpense());
+        updateBtn.addActionListener(e -> updateExpense());
+        deleteBtn.addActionListener(e -> deleteExpense());
+
+        table.getSelectionModel().addListSelectionListener(e -> fillForm());
     }
+
+    /* ================= LOAD DATA ================= */
 
     private void loadCategories() {
         try {
@@ -89,10 +98,10 @@ public class ExpenseGUI extends JFrame {
 
     private void loadExpenses() {
         try {
-            tableModel.setRowCount(0);
+            model.setRowCount(0);
             List<Expense> list = expenseDAO.getAllExpenses();
             for (Expense e : list) {
-                tableModel.addRow(new Object[]{
+                model.addRow(new Object[] {
                         e.getExpenseId(),
                         e.getAmount(),
                         e.getDescription(),
@@ -106,42 +115,119 @@ public class ExpenseGUI extends JFrame {
         }
     }
 
+    /* ================= ADD ================= */
+
     private void addExpense() {
         try {
-            Category category = (Category) categoryBox.getSelectedItem();
-            BigDecimal amount = new BigDecimal(amountField.getText().trim());
-            String description = descriptionField.getText().trim();
-            String note = noteField.getText().trim();
+            Category c = (Category) categoryBox.getSelectedItem();
 
-            Expense expense = new Expense(
-                    amount,
-                    description,
-                    LocalDate.now(),
-                    category != null ? category.getCategoryId() : null,
-                    note.isEmpty() ? null : note
-            );
+            if (amountField.getText().isEmpty() || descField.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Fill all required fields",
+                        "Warning",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-            expenseDAO.addExpense(expense);
+            Expense e = new Expense(
+                    new BigDecimal(amountField.getText().trim()),
+                    descField.getText().trim(),
+                    LocalDate.parse(dateField.getText().trim()),
+                    c == null ? null : c.getCategoryId(),
+                    noteField.getText().trim());
 
-            descriptionField.setText("");
-            amountField.setText("");
-            noteField.setText("");
+            expenseDAO.addExpense(e);
+            clearForm();
             loadExpenses();
 
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Invalid amount",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            showError(e);
+        } catch (Exception ex) {
+            showError(ex);
         }
+    }
+
+    /* ================= UPDATE ================= */
+
+    private void updateExpense() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Select an expense to update",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = (int) model.getValueAt(row, 0);
+            Expense e = buildExpense(id);
+            expenseDAO.updateExpense(e);
+            clearForm();
+            loadExpenses();
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+
+    /* ================= DELETE ================= */
+
+    private void deleteExpense() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(this,
+                    "Select an expense to delete",
+                    "Warning",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            int id = (int) model.getValueAt(row, 0);
+            expenseDAO.deleteExpense(id);
+            clearForm();
+            loadExpenses();
+        } catch (Exception ex) {
+            showError(ex);
+        }
+    }
+
+    /* ================= HELPERS ================= */
+
+    private Expense buildExpense(Integer id) {
+        Category c = (Category) categoryBox.getSelectedItem();
+
+        return new Expense(
+                id,
+                new BigDecimal(amountField.getText().trim()),
+                descField.getText().trim(),
+                LocalDate.parse(dateField.getText().trim()),
+                c == null ? null : c.getCategoryId(),
+                noteField.getText().trim());
+    }
+
+    private void fillForm() {
+        int row = table.getSelectedRow();
+        if (row < 0)
+            return;
+
+        amountField.setText(model.getValueAt(row, 1).toString());
+        descField.setText(model.getValueAt(row, 2).toString());
+        dateField.setText(model.getValueAt(row, 3).toString());
+        noteField.setText(
+                model.getValueAt(row, 5) == null ? "" : model.getValueAt(row, 5).toString());
+    }
+
+    private void clearForm() {
+        amountField.setText("");
+        descField.setText("");
+        noteField.setText("");
+        dateField.setText(LocalDate.now().toString());
+        table.clearSelection();
     }
 
     private void showError(Exception e) {
         JOptionPane.showMessageDialog(this,
-                "Database error: " + e.getMessage(),
-                "Error",
+                e.getMessage(),
+                "Database Error",
                 JOptionPane.ERROR_MESSAGE);
     }
 }
