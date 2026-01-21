@@ -8,14 +8,6 @@ A desktop Expense Tracker built with Java Swing and MySQL. It lets you manage ca
 - **Expenses (CRUD)**: Add, list (sorted by date desc), update, delete expenses via `ExpenseGUI` backed by `ExpenseDAO` and `expense` table.
 - **MySQL persistence**: JDBC via `DatabaseConnection` using MySQL Connector/J.
 
-## Screenshot (placeholder)
-<!-- Add your output screenshot below. Replace the src when you have it. -->
-
-<p align="center">
-  <img src="assests/Screenshot.png" alt="App Screenshot Placeholder" width="720" />
-</p>
-
-> Replace `assests/Screenshot.png` with your actual image path (keep it under the `assests/` directory) when ready.
 
 ## Tech Stack
 - **Language**: Java 11
