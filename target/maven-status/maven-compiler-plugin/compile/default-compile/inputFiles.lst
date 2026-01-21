@@ -1,6 +1,9 @@
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\model\Expense.java
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\expense\dao\MainDAO.java
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\expense\gui\MainGUI.java
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\expense\Main.java
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\model\Category.java
-C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\expense\util\DatabaseConnection.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\gui\ExpenseGUI.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\Main.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\model\Expense.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\gui\ExpenseTrackerGUI.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\model\Category.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\gui\CategoryGUI.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\dao\CategoryDAO.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\util\DatabaseConnection.java
+C:\Users\Public\Documents\OneDrive\文件\ExpenseTracker\src\main\java\com\tracker\dao\ExpenseDAO.java
